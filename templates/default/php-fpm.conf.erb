@@ -1,0 +1,6 @@
+[global]
+<% node['php']['fpm'].each do |name, value| %>
+<%=name%> = <%=value%>
+<% end %>
+
+include=<%= node['php']['fpm_pool_dir'] %>/*.conf

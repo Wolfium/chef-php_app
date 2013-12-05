@@ -1,0 +1,98 @@
+<% unless @params.custom_include == nil %>
+include <%=@params.custom_include %>
+<% end %>
+
+server {
+    <% Array(@params.port).each do |port| %>
+    listen <%=port%>;
+    <% end %>
+
+    <% if @params.ssl %>ssl on;
+    ssl_certificate <%= @params.ssl['certificate'] %>;
+    ssl_certificate_key <%= @params.ssl['certificate_key'] %>;
+    <% end %>
+
+    server_name <% @params.domains.each do |domain| %> www.<%=domain%> <%=domain%><% end %>; ## Domain is here twice so server_name_in_redirect will favour the www
+    root <%=@params.directory %>;
+
+    access_log <%= node['nginx']['log_dir'] %>/access.<%=@params.domain%>.log<% if node['nginx']['access_log_options'] %> <%= node['nginx']['access_log_options'] %><% end %>;
+    error_log <%= node['nginx']['log_dir'] %>/error.<%=@params.domain%>.log<% if node['nginx']['error_log_options'] %> <%= node['nginx']['error_log_options'] %><% end %>;
+
+
+    <% @params.deny_paths.each do |directory| %>
+    location ^~ <%=directory%>                { deny all; }
+    <% end %>
+
+    <% @params.custom_locations.each do |location, content| %>
+    location <%=location%> {
+        <%=content%>
+    }
+    <% end %>
+
+    location  /. { ## Disable .htaccess and other hidden files
+        return 404;
+    }
+
+    <% unless @params.status_path == nil || @params.fastcgi_pass == nil %>
+    location ~ ^/(<%=@params.status_path%>)$ {
+        access_log off;
+        allow 127.0.0.1;
+        <% @params.status_ip.each do |ip_addres| %>
+        allow <%=ip_addres %>;
+        <% end %>
+        deny all;
+        include fastcgi_params;
+        fastcgi_pass <%=@params.fastcgi_pass%>;
+    }
+    <% end %>
+
+    <% unless @params.front_handler == false || @params.fastcgi_pass == nil %>
+    location / {
+        index index.html index.php; ## Allow a static html file to be shown first
+        try_files $uri $uri/ @handler; ## If missing pass the URI to applicaiton front handler
+        expires 30d; ## Assume all files are cachable
+    }
+
+    location @handler { ## Common front handler
+        rewrite / /index.php;
+    }
+
+    location ~ \.php/ { ## Forward paths like /js/index.php/x.js to relevant handler
+        rewrite ^(.*\.php)/ $1 last;
+    }
+    <% end %>
+
+    <% unless @params.fastcgi_pass == nil %>
+
+    <% unless @params.phpunit == nil %>
+    location ~ ^/_intellij_phpunit_launcher.php$ {
+        expires        off; ## Do not cache dynamic content
+        set $args "$args&dir=$document_root&config=<% if @params.phpunit['config'] == nil %>phpunit.xml.dist<% else %><%=@params.phpunit['config'] %><% end %>";
+        fastcgi_pass   <%=@params.fastcgi_pass%>;
+        fastcgi_param  HTTPS $fastcgi_https;
+        <% unless @params.phpunit.key?('env') %>
+        <% @params.phpunit['env'].each do |env_name, env_value| %>
+        fastcgi_param  <%=env_name%> "<%=env_value%>";
+        <% end %>
+        <% end %>
+        fastcgi_read_timeout 6000;
+        include        fastcgi_params; ## See /etc/nginx/fastcgi_params
+    }
+    <% end %>
+
+
+    location ~ \.php$ { ## Execute PHP scripts
+        if (!-e $request_filename) { rewrite / /index.php break; } ## Catch 404s that try_files miss
+        expires        off; ## Do not cache dynamic content
+        fastcgi_pass   <%=@params.fastcgi_pass%>;
+        <% @params.fastcgi_params.each do |code, value| %>
+        fastcgi_param  <%=code%> <%=value%>;
+        <% end %>
+        fastcgi_param  HTTPS $https if_not_empty;
+        <% @params.fastcgi_custom_directives.each do |value| %>
+        <%=value%>;
+        <% end %>
+        include        fastcgi_params; ## See /etc/nginx/fastcgi_params
+    }
+    <% end %>
+}

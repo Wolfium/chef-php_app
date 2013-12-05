@@ -1,0 +1,83 @@
+[<%=@params.name%>]
+
+<% unless @params.prefix == nil %>
+prefix = <%=@params.prefix%>
+<% end %>
+
+; The address on which to accept FastCGI requests.
+; Valid syntaxes are:
+;   'ip.add.re.ss:port'    - to listen on a TCP socket to a specific address on
+;                            a specific port;
+;   'port'                 - to listen on a TCP socket to all addresses on a
+;                            specific port;
+;   '/path/to/unix/socket' - to listen on a unix socket.
+; Note: This value is mandatory.
+listen = <%=@params.listen%>
+
+<% unless @params.listen_params == nil %>
+<% @params.listen_params.each do |name, value| %>
+listen.<%=name%> = <%=value%>
+<% end %>
+<% end %>
+
+; User for PHP process
+user = <%=@params.user%>
+group = <%=@params.group%>
+
+
+pm = <%=@params.pm%>
+
+pm.max_children = <%=@params.max_children%>
+
+pm.start_servers = <%=@params.start_servers%>
+
+pm.min_spare_servers = <%=@params.min_spare_servers%>
+
+pm.max_spare_servers = <%=@params.max_spare_servers%>
+
+pm.max_requests = <%=@params.max_requests%>
+
+<% unless @params.status_path == nil %>
+pm.status_path = <%=@params.status_path%>
+<% end %>
+
+<% unless @params.ping_path == nil%>
+ping.path = <%=@params.ping_path%>
+ping.response = <%=@params.ping_response%>
+<% end %>
+
+<% unless @params.request_terminate_timeout == nil%>
+request_terminate_timeout = <%=@params.request_terminate_timeout%>
+<% end %>
+
+<% unless @params.request_slowlog_timeout == nil%>
+request_slowlog_timeout = <%=@params.request_slowlog_timeout%>
+slowlog =  <%=@params.slowlog%>
+<% end %>
+
+<% unless @params.rlimit_files == nil%>
+rlimit_files = <%=@params.rlimit_files%>
+<% end %>
+
+<% unless @params.rlimit_core == nil%>
+rlimit_files = <%=@params.rlimit_core%>
+<% end %>
+
+<% unless @params.chroot == nil%>
+chroot = <%=@params.chroot%>
+<% end %>
+
+<% unless @params.chdir == nil%>
+chdir = <%=@params.chdir%>
+<% end %>
+
+catch_workers_output = <%=@params.catch_workers_output%>
+
+<%
+%w(env php_value php_flag php_admin_value php_admin_flag).each do |params_key|
+    if @params.send(params_key.to_sym) && @params.send(params_key.to_sym).is_a?(Hash)
+       @params.send(params_key.to_sym).each do |name, value| %>
+<%=params_key%>[<%=name%>] = <%=value%>
+<%      end
+    end
+end %>
