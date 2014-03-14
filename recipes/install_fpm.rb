@@ -1,9 +1,5 @@
 include_recipe "php"
 
-bash "copy init.d deamon php" do
-  cwd Chef::Config[:file_cache_path]
-end
-
 php_fpm_service_name = value_for_platform_family(
     %w(rhel fedora) => 'php-fpm',
     'default' => 'php5-fpm'
@@ -21,12 +17,7 @@ template "/etc/init.d/#{php_fpm_service_name}" do
 end
 
 service 'php-app-fpm' do
-  case node['platform_family']
-    when 'rhel', 'fedora'
-      service_name php_fpm_service_name
-    else
-      service_name php_fpm_service_name
-  end
+  service_name php_fpm_service_name
   supports :restart => true, :start => true, :stop => true, :status => true, :reload => true
   action :enable
 end
@@ -51,7 +42,7 @@ directory "#{node['php']['fpm_pool_dir']}" do
   group 'root'
   mode 00755
   recursive true
-  not_if do ::File.exists?(node['php']['fpm_pool_dir']) end
+  not_if { ::File.exists?(node['php']['fpm_pool_dir']) }
 end
 
 # Ubuntu uses a separate ini for FPM
@@ -60,7 +51,7 @@ template "#{node['php']['fpm_conf_dir']}/php.ini" do
   cookbook 'php'
   owner 'root'
   group 'root'
-  notifies :restart, "service[php-app-fpm]"
+  notifies :restart, "service[php-app-fpm]", :delayed
   mode 00644
   variables(:directives => node['php']['directives'])
   only_if { platform_family?('debian') }
@@ -71,11 +62,9 @@ template "#{node['php']['fpm_conf_dir']}/php-fpm.conf" do
   source 'php-fpm.conf.erb'
   owner 'root'
   group 'root'
-  notifies :restart, "service[php-app-fpm]"
+  notifies :restart, "service[php-app-fpm]", :delayed
   mode 00644
 end
-
-
 
 # For the pool log files
 directory node['php']['fpm_log_dir'] do

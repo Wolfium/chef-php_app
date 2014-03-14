@@ -1,6 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+required_plugins={
+    'vagrant-berkshelf' => 'Berkshelf',
+    'vagrant-omnibus' => 'Omnibus',
+    'vagrant-hostmanager' => 'Hostmanager'
+}
+
+required_plugins.each do |key, value|
+  unless Vagrant.has_plugin?(key)
+    raise "#{value} plugin should be installed. Use \"vagrant plugin install #{key}\" in order to install it"
+  end
+end
+
 Vagrant.configure("2") do |config|
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true
@@ -13,17 +25,17 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "php-app-berkshelf"
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "precise64"
+  config.vm.box = "chef-debian-7.4"
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
-  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+  config.vm.box_url = "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_debian-7.4_chef-provisionerless.box"
 
   # Assign this VM to a host-only network IP, allowing you to access it
   # via the IP. Host-only networks can talk to the host machine as well as
   # any other machines on the same network, but cannot be accessed (through this
   # network interface) by any external networks.
-  config.vm.network :private_network, ip: "33.33.33.11"
+  config.vm.network :private_network, ip: "33.33.33.10"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
@@ -56,7 +68,7 @@ Vagrant.configure("2") do |config|
   # View the documentation for the provider you're using for more
   # information on available options.
 
-  config.vm.boot_timeout = 20
+  config.vm.boot_timeout = 60
 
   # The path to the Berksfile to use with Vagrant Berkshelf
   # config.berkshelf.berksfile_path = "./Berksfile"
@@ -96,10 +108,9 @@ Vagrant.configure("2") do |config|
                 'xdebug' => {
                     'zend_extensions' => ['xdebug.so']
                 },
-                'apc' => {
-                    'directives' => {
-                        'shm_size' => '128M'
-                    }
+                'zendopcache' => {
+                    'zend_extensions' => ['opcache.so'],
+                    'preferred_state' => 'beta'
                 },
                 'PHPUnit' => {
                     'channel' => 'pear.phpunit.de',
@@ -107,10 +118,22 @@ Vagrant.configure("2") do |config|
                 }
             }
         },
+        'php' => {
+            'directives' => {
+                'opcache.memory_consumption' => '128',
+                'opcache.interned_strings_buffer' => '8',
+                'opcache.max_accelerated_files' => '4000',
+                'opcache.revalidate_freq' => '60',
+                'opcache.fast_shutdown' => '1',
+                'opcache.enable_cli' => '1',
+                'opcache.enable_file_override' => '1'
+            }
+        },
         'testapp' => {
             'db' => {
                 'name' => 'test_app'
             },
+            'domains' => ['test-app1.dev', 'test-app2.dev'],
             'socket' => false
         },
         'testapp2' => {
@@ -122,8 +145,8 @@ Vagrant.configure("2") do |config|
            'use_fpm' => false
         }
     }
-    chef.run_list = %w(recipe[php_app::app] recipe[php_app::db])
+    chef.run_list = %w(recipe[apt] recipe[apt] recipe[php_app::app] recipe[php_app::db])
   end
 
-  config.hostmanager.aliases = %w(testapp.dev testapp2.dev teststatic.dev)
+  config.hostmanager.aliases = %w(testapp.dev testapp2.dev test-app1.dev test-app2.dev teststatic.dev)
 end

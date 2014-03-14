@@ -24,3 +24,18 @@ class ::Hash
     self.merge(second, &merger)
   end
 end
+
+class ::Array
+  def to_hash_recursive
+    a = []
+    self.each do |v|
+      if v.respond_to?('to_hash_recursive')
+        a.push(v.to_hash_recursive)
+      elsif v.respond_to?('to_hash')
+        a.push(v.to_hash)
+      else
+        a.push(v)
+      end
+    end
+  end
+end
