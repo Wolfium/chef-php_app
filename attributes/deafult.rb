@@ -1,10 +1,10 @@
 # List of latest available PHP versions with their checksums for download
-default['php_versions']['5.3']['version'] = '5.3.27'
-default['php_versions']['5.3']['checksum'] = 'bd03bfa9e7db40b6f2950fcbcf6a8276'
-default['php_versions']['5.4']['version'] = '5.4.22'
-default['php_versions']['5.4']['checksum'] = 'a23fead825db383f6b364dd3c825b729'
-default['php_versions']['5.5']['version'] = '5.5.6'
-default['php_versions']['5.5']['checksum'] = '77ad90035931aacb95d11318b09c12ca'
+default['php_versions']['5.3']['version'] = '5.3.28'
+default['php_versions']['5.3']['checksum'] = 'eec3fb5ccb6d8c238f973d306bebb00e'
+default['php_versions']['5.4']['version'] = '5.4.26'
+default['php_versions']['5.4']['checksum'] = '7e5f6254d1bac06efc225259a1e38a27'
+default['php_versions']['5.5']['version'] = '5.5.10'
+default['php_versions']['5.5']['checksum'] = 'e760656f7cf2f05158f73da75e8b720b'
 
 include_attribute 'php'
 case node['platform_family']

@@ -1,4 +1,4 @@
-include_recipe 'php_app'
+include_recipe 'php_app::default'
 include_recipe 'database::mysql'
 
 node['app']['list'].each do |app_name|

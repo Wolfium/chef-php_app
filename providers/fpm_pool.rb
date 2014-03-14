@@ -11,7 +11,7 @@ action :create do
     variables(
         params: new_resource
     )
-    notifies :restart, 'service[php-app-fpm]', :delayed
+    notifies :restart, 'service[php-app-fpm]', :immediate
   end
 
   @is_updated = @is_updated || @resource.updated_by_last_action?
@@ -24,7 +24,7 @@ action :delete do
 
   @resource = file "#{node['php']['fpm_pool_dir']}/#{new_resource.name}.conf" do
     action :delete
-    notifies :restart, 'service[php-app-fpm]', :delayed
+    notifies :restart, 'service[php-app-fpm]', :immediate
   end
 
   @is_updated = @is_updated || @resource.updated_by_last_action?

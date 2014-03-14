@@ -1,4 +1,4 @@
-include_recipe "php_app::system"
+include_recipe 'php_app::system'
 
 php_version = node['app']['php']
 
@@ -66,6 +66,7 @@ node['app']['list'].each do |app_name|
   unless app_settings['vhost']['domain']
     app_settings['vhost']['domain'] = "#{app_name}.dev"
   end
+
   unless app_settings['vhost']['domains'].is_a?(Array)
     app_settings['vhost']['domains'] = []
   end

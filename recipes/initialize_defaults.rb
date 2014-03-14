@@ -9,7 +9,6 @@ node['app']['list'].each do |app_name|
 end
 
 if node['app']['install_mysql']
-  include_recipe 'apt'
   include_recipe 'mysql::server'
 end
 

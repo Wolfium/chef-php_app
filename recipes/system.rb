@@ -1,7 +1,4 @@
-include_recipe "php_app"
-include_recipe "apt::default"
-
-package "htop"
+include_recipe 'php_app::default'
 
 node['app']['list'].each do |app_name|
   app_settings = node['app']['default_settings'].to_hash_recursive
