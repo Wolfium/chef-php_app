@@ -64,5 +64,3 @@ default['app']['default_settings']['vhost']['enabled'] = true
 default['app']['default_settings']['vhost']['domain'] = nil
 
 default['app']['install_mysql'] = true
-
-include_attribute 'mysql::server'
