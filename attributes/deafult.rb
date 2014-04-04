@@ -6,6 +6,7 @@ default['php_versions']['5.4']['checksum'] = '7e5f6254d1bac06efc225259a1e38a27'
 default['php_versions']['5.5']['version'] = '5.5.10'
 default['php_versions']['5.5']['checksum'] = 'e760656f7cf2f05158f73da75e8b720b'
 
+include_attribute 'php'
 case node['platform_family']
   when 'rhel', 'fedora'
     default['php']['fpm_conf_dir']  = '/etc'
@@ -64,3 +65,4 @@ default['app']['default_settings']['vhost']['enabled'] = true
 default['app']['default_settings']['vhost']['domain'] = nil
 
 default['app']['install_mysql'] = true
+include_attribute 'mysql'
